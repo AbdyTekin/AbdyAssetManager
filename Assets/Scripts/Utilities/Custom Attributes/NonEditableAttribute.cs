@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-namespace EasyResourceSystem
+namespace AbdyAssetManagement
 {
     // A custom attribute used to make variables non-editable but keep them visible in the inspector panel.
     public class NonEditableAttribute : PropertyAttribute

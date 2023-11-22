@@ -4,7 +4,7 @@ using UnityEngine.VFX;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EasyResourceSystem
+namespace AbdyAssetManagement
 {
     using static ResourceSystem;
 

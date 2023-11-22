@@ -1,6 +1,6 @@
 using System;
 
-namespace EasyResourceSystem
+namespace AbdyAssetManagement
 {
     [Serializable]
     public class Audio

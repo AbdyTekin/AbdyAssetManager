@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-namespace EasyResourceSystem
+namespace AbdyAssetManagement
 {
     public class InformAttribute : PropertyAttribute
     {

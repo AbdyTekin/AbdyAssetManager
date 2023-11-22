@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace EasyResourceSystem
+namespace AbdyAssetManagement
 {
     public abstract class StaticInstance<T> : MonoBehaviour where T : MonoBehaviour
     {

@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static EasyResourceSystem.Audio;
-using static EasyResourceSystem.VFX;
+using static AbdyAssetManagement.Audio;
+using static AbdyAssetManagement.VFX;
 using static UnityEngine.ParticleSystem;
 using Random = UnityEngine.Random;
 
-namespace EasyResourceSystem
+namespace AbdyAssetManagement
 {
     public class EventFunctions : MonoBehaviour
     {

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-namespace EasyResourceSystem
+namespace AbdyAssetManagement
 {
     public class ResourceSystem : PersistentSingleton<ResourceSystem>
     {
