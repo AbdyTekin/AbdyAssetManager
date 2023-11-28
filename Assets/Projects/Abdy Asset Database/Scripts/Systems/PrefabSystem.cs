@@ -6,6 +6,7 @@ namespace AbdyManagement
 {
     public static class PrefabSystem
     {
+
     }
 }
 
