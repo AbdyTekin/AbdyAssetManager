@@ -5,12 +5,22 @@ namespace AbdyManagement
 {
     public class AssetManager : MonoBehaviour
     {
-        public void GetAsset()
+        public void GetAsset(string name)
         {
 
         }
 
-        public void SetAsset()
+        public void GetAsset(Enum name)
+        {
+
+        }
+
+        public void SetAsset<T>(string name, T value)
+        {
+
+        }
+
+        public void SetAsset<T>(Enum name, T value)
         {
 
         }

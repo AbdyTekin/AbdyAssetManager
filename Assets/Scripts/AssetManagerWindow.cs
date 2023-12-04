@@ -20,14 +20,19 @@ namespace AbdyManagement
         List<AssetLayerSO> assetDataSOList;
 
         SerializedObject selectedAssetLayer;
-        List<SerializedProperty> assetLayerCategoriesOfSelected;
+        List<SerializedProperty> assetCategoriesOfSelectedLayer;
+        SerializedProperty sceneLayerMaskOfSelectedLayer;
 
         SerializedProperty selectedAssetGroup;
-        List<SerializedProperty> categoryAssetsOfSelected;
+        List<SerializedProperty> AssetsOfSelectedCategory;
 
         SerializedProperty selectedAsset;
 
         Vector2 scrollPosition;
+
+        private int selectedLayerIndex = -1;
+        private bool isRenamingLayer = false;
+        private string layerRenamingText = "";
 
         [MenuItem("Window/Abdy Asset Manager")]
         private static void OpenWindow()
@@ -48,36 +53,55 @@ namespace AbdyManagement
         void InitData()
         {
             assetDataSOList = Resources.LoadAll<AssetLayerSO>("Scriptables/").ToList();
+            if (assetDataSOList.Count > 0 ) selectedAssetLayer = new(assetDataSOList[0]);
+            InitializeSelectedData();
+        }
 
-            if (assetDataSOList.Count > 0)
+        void InitializeSelectedData()
+        {
+            if (selectedAssetLayer != null)
             {
-                selectedAssetLayer = new(assetDataSOList[0]);
-                selectedAssetGroup = selectedAssetLayer.FindProperty("sprites").GetArrayElementAtIndex(0);
-                selectedAsset = selectedAssetGroup.FindPropertyRelative("data").GetArrayElementAtIndex(0);
-
-                assetLayerCategoriesOfSelected = new List<SerializedProperty>
+                sceneLayerMaskOfSelectedLayer = selectedAssetLayer.FindProperty("sceneLayerMask");
+                assetCategoriesOfSelectedLayer = new List<SerializedProperty>
                 {
-                selectedAssetLayer.FindProperty("prefabs"),
-                selectedAssetLayer.FindProperty("audioClips"),
-                selectedAssetLayer.FindProperty("scriptableObjects"),
-                selectedAssetLayer.FindProperty("materials"),
-                selectedAssetLayer.FindProperty("sprites"),
-                selectedAssetLayer.FindProperty("fonts"),
-                selectedAssetLayer.FindProperty("animations"),
-                selectedAssetLayer.FindProperty("textures"),
-                selectedAssetLayer.FindProperty("shaders"),
-                selectedAssetLayer.FindProperty("meshes"),
-                selectedAssetLayer.FindProperty("scenes"),
+                    selectedAssetLayer.FindProperty("prefabs"),
+                    selectedAssetLayer.FindProperty("audioClips"),
+                    selectedAssetLayer.FindProperty("scriptableObjects"),
+                    selectedAssetLayer.FindProperty("materials"),
+                    selectedAssetLayer.FindProperty("sprites"),
+                    selectedAssetLayer.FindProperty("fonts"),
+                    selectedAssetLayer.FindProperty("animations"),
+                    selectedAssetLayer.FindProperty("textures"),
+                    selectedAssetLayer.FindProperty("shaders"),
+                    selectedAssetLayer.FindProperty("meshes"),
+                    selectedAssetLayer.FindProperty("scenes"),
                 };
 
-                categoryAssetsOfSelected = new();
-                for (int i = 0; i < selectedAssetGroup.FindPropertyRelative("data").arraySize; i++)
+                selectedAsset = selectedAssetGroup = null;
+                AssetsOfSelectedCategory = new();
+                foreach (SerializedProperty property in assetCategoriesOfSelectedLayer)
                 {
-                    SerializedProperty _data = selectedAssetGroup.FindPropertyRelative("data").GetArrayElementAtIndex(i);
-                    categoryAssetsOfSelected.Add(_data);
+                    if (property.arraySize != 0)
+                    {
+                        selectedAssetGroup = property.GetArrayElementAtIndex(0);
+
+                        for (int i = 0; i < selectedAssetGroup.FindPropertyRelative("data").arraySize; i++)
+                        {
+                            SerializedProperty _data = selectedAssetGroup.FindPropertyRelative("data").GetArrayElementAtIndex(i);
+                            AssetsOfSelectedCategory.Add(_data);
+                        }
+
+                        selectedAsset = AssetsOfSelectedCategory?[0];
+                        break;
+                    }
                 }
             }
+        }
 
+        void ChangeSelectedLayer(SerializedObject layer)
+        {
+            selectedAssetLayer = layer;
+            InitializeSelectedData();
         }
 
         void InitTextures()
@@ -161,17 +185,82 @@ namespace AbdyManagement
         {
             GUILayout.BeginArea(layerMainSection);
 
-            foreach (AssetLayerSO data in assetDataSOList)
+            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.Width(layerMainSection.width), GUILayout.Height(layerMainSection.height));
+
+            for (int i = 0; i < assetDataSOList.Count; i++)
             {
-                GUILayout.Label(data.ToString());
+                AssetLayerSO data = assetDataSOList[i];
+                bool isSelected = selectedLayerIndex == i;
+
+                Rect labelRect = GUILayoutUtility.GetRect(new GUIContent(data.name), EditorStyles.label);
+                bool isClicked = Event.current.type == EventType.MouseDown && labelRect.Contains(Event.current.mousePosition);
+                bool isDoubleClick = isClicked && Event.current.clickCount == 2;
+                bool isF2Pressed = Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.F2;
+
+                if ((isSelected && isF2Pressed) || isDoubleClick)
+                {
+                    isRenamingLayer = true;
+                    layerRenamingText = data.name;
+                    Event.current.Use();
+                }
+
+                if (isRenamingLayer && isSelected)
+                {
+
+                    GUI.SetNextControlName("RenamingField");
+                    layerRenamingText = EditorGUI.TextField(labelRect, layerRenamingText);
+                    bool enterPressed = Event.current.keyCode == KeyCode.Return;
+
+                    if (enterPressed || (Event.current.type == EventType.MouseDown && !labelRect.Contains(Event.current.mousePosition)))
+                    {
+                        isRenamingLayer = false;
+
+                        if (!string.IsNullOrWhiteSpace(layerRenamingText) && layerRenamingText != data.name)
+                        {
+                            Undo.RecordObject(data, "Rename Asset Layer");
+                            data.name = layerRenamingText;
+                            EditorUtility.SetDirty(data);
+                            AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(data), layerRenamingText); // Rename the asset file
+                            AssetDatabase.SaveAssets();
+                        }
+                    }
+                }
+                else
+                {
+                    // Draw label and handle selection
+                    EditorGUI.LabelField(labelRect, data.name, isSelected ? EditorStyles.whiteLabel : EditorStyles.label);
+                    if (isClicked && Event.current.button == 0)
+                    {
+                        selectedLayerIndex = i;
+                        ChangeSelectedLayer(new SerializedObject(data));
+                        Event.current.Use();
+                    }
+                }
             }
 
+            EditorGUILayout.EndScrollView();
             GUILayout.EndArea();
         }
+
 
         void DrawLayerOptionsSection()
         {
             GUILayout.BeginArea(layerOptionsSection);
+
+            for (int i = 0; i < sceneLayerMaskOfSelectedLayer.arraySize; i++)
+            {
+                SerializedProperty sceneLayerMaskLayer = sceneLayerMaskOfSelectedLayer.GetArrayElementAtIndex(i);
+
+                if (sceneLayerMaskLayer.objectReferenceValue != null )
+                {
+                    GUILayout.Label(sceneLayerMaskLayer.objectReferenceValue.name.ToString());
+                }
+                else
+                {
+                    GUILayout.Label("Null");
+                }
+
+            }
 
             GUILayout.EndArea();
         }
@@ -180,7 +269,7 @@ namespace AbdyManagement
         {
             GUILayout.BeginArea(categorySection);
 
-            foreach (SerializedProperty property in assetLayerCategoriesOfSelected)
+            foreach (SerializedProperty property in assetCategoriesOfSelectedLayer)
             {
                 if (property.arraySize != 0)
                 {
@@ -199,7 +288,7 @@ namespace AbdyManagement
         {
             GUILayout.BeginArea(assetSection);
 
-            foreach (SerializedProperty property in categoryAssetsOfSelected)
+            foreach (SerializedProperty property in AssetsOfSelectedCategory)
             {
                 GUILayout.Label(property.FindPropertyRelative("name").stringValue);
             }
