@@ -7,15 +7,16 @@ namespace AbdyManagement
 {
     public class AssetManagerWindow : EditorWindow
     {
-        Rect headerSection, layerMainSection, layerOptionsSection, categorySection, assetSection;
-        Texture2D headerSectionTexture, layerMainSectionTexture, layerOptionsSectionTexture, categorySectionTexture, assetSectionTexture;
-        Color headerSectionColor = new(45f / 255f, 45f / 255f, 45f / 255f, 1f);
+        #region Sections & Textures & Colors & Style
+        Rect footerSection, layerMainSection, layerOptionsSection, groupSection, assetSection;
+        Texture2D footerSectionTexture, layerMainSectionTexture, layerOptionsSectionTexture, groupSectionTexture, assetSectionTexture;
+        Color footerSectionColor = new(40f / 255f, 40f / 255f, 40f / 255f, 1f);
         Color layerMainSectionColor = new(60f / 255f, 60f / 255f, 60f / 255f, 1f);
         Color layerOptionsSectionColor = new(70f / 255f, 70f / 255f, 70f / 255f, 1f);
-        Color categorySectionColor = new(75f / 255f, 75f / 255f, 75f / 255f, 1f);
+        Color groupSectionColor = new(75f / 255f, 75f / 255f, 75f / 255f, 1f);
         Color assetSectionColor = new(90f / 255f, 90f / 255f, 90f / 255f, 1f);
-
         GUISkin skin;
+        #endregion
 
         List<AssetLayerSO> assetDataSOList;
 
@@ -34,6 +35,9 @@ namespace AbdyManagement
         private bool isRenamingLayer = false;
         private string layerRenamingText = "";
 
+        private int frameWidth = 4;
+        private string version = "1.0.0";
+
         [MenuItem("Window/Abdy Asset Manager")]
         private static void OpenWindow()
         {
@@ -50,6 +54,7 @@ namespace AbdyManagement
             skin = Resources.Load<GUISkin>("GuiStyles/LevelDesignerSkin");
         }
 
+        #region Initialize Data
         void InitData()
         {
             assetDataSOList = Resources.LoadAll<AssetLayerSO>("Scriptables/").ToList();
@@ -97,6 +102,7 @@ namespace AbdyManagement
                 }
             }
         }
+        #endregion
 
         void ChangeSelectedLayer(SerializedObject layer)
         {
@@ -104,11 +110,12 @@ namespace AbdyManagement
             InitializeSelectedData();
         }
 
+        #region Initialize Textures
         void InitTextures()
         {
-            headerSectionTexture = new(1, 1);
-            headerSectionTexture.SetPixel(0, 0, headerSectionColor);
-            headerSectionTexture.Apply();
+            footerSectionTexture = new(1, 1);
+            footerSectionTexture.SetPixel(0, 0, footerSectionColor);
+            footerSectionTexture.Apply();
 
             layerMainSectionTexture = new(1, 1);
             layerMainSectionTexture.SetPixel(0, 0, layerMainSectionColor);
@@ -118,82 +125,86 @@ namespace AbdyManagement
             layerOptionsSectionTexture.SetPixel(0, 0, layerOptionsSectionColor);
             layerOptionsSectionTexture.Apply();
 
-            categorySectionTexture = new(1, 1);
-            categorySectionTexture.SetPixel(0, 0, categorySectionColor);
-            categorySectionTexture.Apply();
+            groupSectionTexture = new(1, 1);
+            groupSectionTexture.SetPixel(0, 0, groupSectionColor);
+            groupSectionTexture.Apply();
 
             assetSectionTexture = new(1, 1);
             assetSectionTexture.SetPixel(0, 0, assetSectionColor);
             assetSectionTexture.Apply();
         }
+        #endregion
 
         void OnGUI()
         {
             DrawLayouts();
 
-            DrawHeaderSection();
+            DrawFooterSection();
             DrawLayerMainSection();
             DrawLayerOptionsSection();
-            DrawCategorySection();
+            DrawGroupSection();
             DrawAssetSection();
         }
 
+        #region Draw Layouts
         void DrawLayouts()
         {
-            headerSection.x = 0f;
-            headerSection.y = 0f;
-            headerSection.width = position.width;
-            headerSection.height = 40;
+            footerSection.x = 0f;
+            footerSection.y = position.height - 20;
+            footerSection.width = position.width;
+            footerSection.height = 20;
 
             layerMainSection.x = 0f;
-            layerMainSection.y = headerSection.height;
+            layerMainSection.y = 0f;
             layerMainSection.width = position.width / 5;
-            layerMainSection.height = (position.height - headerSection.height) / 2;
+            layerMainSection.height = (position.height - footerSection.height) / 2;
 
             layerOptionsSection.x = 0f;
             layerOptionsSection.y = layerMainSection.y + layerMainSection.height;
             layerOptionsSection.width = layerMainSection.width;
-            layerOptionsSection.height = position.height - (layerMainSection.y + layerMainSection.height);
+            layerOptionsSection.height = position.height - (layerMainSection.height + footerSection.height);
 
-            categorySection.x = layerMainSection.x + layerMainSection.width;
-            categorySection.y = headerSection.height;
-            categorySection.width = layerMainSection.width * 1.62f;
-            categorySection.height = position.height;
+            groupSection.x = layerMainSection.x + layerMainSection.width;
+            groupSection.y = 0f;
+            groupSection.width = layerMainSection.width * 1.62f;
+            groupSection.height = position.height - footerSection.height;
 
-            assetSection.x = categorySection.x + categorySection.width;
-            assetSection.y = headerSection.height;
-            assetSection.width = position.width - categorySection.width;
-            assetSection.height = position.height;
+            assetSection.x = groupSection.x + groupSection.width;
+            assetSection.y = 0f;
+            assetSection.width = position.width - (groupSection.width + layerMainSection.width);
+            assetSection.height = position.height - footerSection.height;
 
-            GUI.DrawTexture(headerSection, headerSectionTexture);
+            GUI.DrawTexture(footerSection, footerSectionTexture);
             GUI.DrawTexture(layerMainSection, layerMainSectionTexture);
             GUI.DrawTexture(layerOptionsSection, layerOptionsSectionTexture);
-            GUI.DrawTexture(categorySection, categorySectionTexture);
+            GUI.DrawTexture(groupSection, groupSectionTexture);
             GUI.DrawTexture(assetSection, assetSectionTexture);
+
+            EditorGUI.DrawRect(new Rect(0, 0, frameWidth, position.height), footerSectionColor);
+            EditorGUI.DrawRect(new Rect(layerMainSection.width, 0, frameWidth, position.height), footerSectionColor);
+            EditorGUI.DrawRect(new Rect(layerMainSection.width + groupSection.width, 0, frameWidth, position.height), footerSectionColor);
+            EditorGUI.DrawRect(new Rect(position.width - frameWidth, 0, frameWidth, position.height), footerSectionColor);
+            EditorGUI.DrawRect(new Rect(0, layerMainSection.height, layerOptionsSection.width, frameWidth), footerSectionColor);
         }
-
-        void DrawHeaderSection()
-        {
-            GUILayout.BeginArea(headerSection);
-
-            GUILayout.Label("Abdy Asset Manager", skin.GetStyle("header1"));
-
-            GUILayout.EndArea();
-        }
+        #endregion
 
         void DrawLayerMainSection()
         {
             GUILayout.BeginArea(layerMainSection);
-
-            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.Width(layerMainSection.width), GUILayout.Height(layerMainSection.height));
+            GUILayout.Label("Layers", skin.GetStyle("h_1"));
+            EditorGUI.DrawRect(new Rect(frameWidth, 15, layerMainSection.width - frameWidth, 1), Color.gray);
+            EditorGUILayout.Space(10);
+            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.Width(layerMainSection.width), GUILayout.Height(layerMainSection.height - 20));
 
             for (int i = 0; i < assetDataSOList.Count; i++)
             {
+                GUILayout.BeginHorizontal();
+                Rect elementRect = EditorGUILayout.GetControlRect(GUILayout.Width(layerMainSection.width - 38), GUILayout.Height(22));
+                Rect elementRenameRect = new (elementRect.x + elementRect.width - 15, elementRect.y + 3, 14,elementRect.height * 14 / 20);
+                elementRect.x += 4;
                 AssetLayerSO data = assetDataSOList[i];
                 bool isSelected = selectedLayerIndex == i;
-
-                Rect labelRect = GUILayoutUtility.GetRect(new GUIContent(data.name), EditorStyles.label);
-                bool isClicked = Event.current.type == EventType.MouseDown && labelRect.Contains(Event.current.mousePosition);
+                bool isClicked = Event.current.type == EventType.MouseDown && elementRect.Contains(Event.current.mousePosition);
                 bool isDoubleClick = isClicked && Event.current.clickCount == 2;
                 bool isF2Pressed = Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.F2;
 
@@ -206,12 +217,11 @@ namespace AbdyManagement
 
                 if (isRenamingLayer && isSelected)
                 {
-
                     GUI.SetNextControlName("RenamingField");
-                    layerRenamingText = EditorGUI.TextField(labelRect, layerRenamingText);
+                    layerRenamingText = EditorGUI.TextField(elementRect, layerRenamingText, skin.textField);
                     bool enterPressed = Event.current.keyCode == KeyCode.Return;
 
-                    if (enterPressed || (Event.current.type == EventType.MouseDown && !labelRect.Contains(Event.current.mousePosition)))
+                    if (enterPressed || (Event.current.type == EventType.MouseDown && !elementRect.Contains(Event.current.mousePosition)))
                     {
                         isRenamingLayer = false;
 
@@ -220,15 +230,17 @@ namespace AbdyManagement
                             Undo.RecordObject(data, "Rename Asset Layer");
                             data.name = layerRenamingText;
                             EditorUtility.SetDirty(data);
-                            AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(data), layerRenamingText); // Rename the asset file
+                            AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(data), layerRenamingText);
                             AssetDatabase.SaveAssets();
                         }
                     }
                 }
                 else
                 {
-                    // Draw label and handle selection
-                    EditorGUI.LabelField(labelRect, data.name, isSelected ? EditorStyles.whiteLabel : EditorStyles.label);
+                    GUI.color = isSelected ? footerSectionColor : Color.white;
+                    GUI.Box(elementRect, "");
+                    GUI.color = Color.white;
+                    EditorGUI.LabelField(elementRect, data.name, isSelected ? skin.GetStyle("l_t_1") : skin.GetStyle("l_t_2"));
                     if (isClicked && Event.current.button == 0)
                     {
                         selectedLayerIndex = i;
@@ -236,8 +248,14 @@ namespace AbdyManagement
                         Event.current.Use();
                     }
                 }
-            }
+                if (isSelected)
+                {
+                    GUI.DrawTexture(elementRenameRect, skin.box.normal.background);
 
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.Space(2);
+            }
             EditorGUILayout.EndScrollView();
             GUILayout.EndArea();
         }
@@ -247,13 +265,18 @@ namespace AbdyManagement
         {
             GUILayout.BeginArea(layerOptionsSection);
 
+            GUILayout.Space(5);
+            GUILayout.Label("Layer Options", skin.GetStyle("h_1"));
+            EditorGUI.DrawRect(new Rect(frameWidth, 20, layerOptionsSection.width - frameWidth, 1), Color.gray);
+            EditorGUILayout.Space(10);
+
             for (int i = 0; i < sceneLayerMaskOfSelectedLayer.arraySize; i++)
             {
                 SerializedProperty sceneLayerMaskLayer = sceneLayerMaskOfSelectedLayer.GetArrayElementAtIndex(i);
 
                 if (sceneLayerMaskLayer.objectReferenceValue != null )
                 {
-                    GUILayout.Label(sceneLayerMaskLayer.objectReferenceValue.name.ToString());
+                    GUILayout.Label(sceneLayerMaskLayer.objectReferenceValue.name.ToString(), skin.GetStyle("lo_t_1"));
                 }
                 else
                 {
@@ -265,9 +288,13 @@ namespace AbdyManagement
             GUILayout.EndArea();
         }
 
-        void DrawCategorySection()
+        void DrawGroupSection()
         {
-            GUILayout.BeginArea(categorySection);
+            GUILayout.BeginArea(groupSection);
+
+            GUILayout.Label("Groups", skin.GetStyle("h_1"));
+            EditorGUI.DrawRect(new Rect(frameWidth, 15, groupSection.width - frameWidth, 1), Color.gray);
+            EditorGUILayout.Space(10);
 
             foreach (SerializedProperty property in assetCategoriesOfSelectedLayer)
             {
@@ -277,22 +304,37 @@ namespace AbdyManagement
                     {
                         SerializedProperty _arrayElement = property.GetArrayElementAtIndex(i);
 
-                        GUILayout.Label(_arrayElement.FindPropertyRelative("groupName").stringValue);
+                        GUILayout.Label(_arrayElement.FindPropertyRelative("groupName").stringValue, skin.GetStyle("g_t_1"));
                     }
                 }
             }
 
             GUILayout.EndArea();
         }
+
         void DrawAssetSection()
         {
             GUILayout.BeginArea(assetSection);
 
+            GUILayout.Label("Assets", skin.GetStyle("h_1"));
+            EditorGUI.DrawRect(new Rect(frameWidth, 15, assetSection.width - frameWidth * 2, 1), Color.gray);
+            EditorGUILayout.Space(10);
+
             foreach (SerializedProperty property in AssetsOfSelectedCategory)
             {
-                GUILayout.Label(property.FindPropertyRelative("name").stringValue);
+                GUILayout.Label(property.FindPropertyRelative("name").stringValue, skin.GetStyle("a_t_1"));
             }
 
+            GUILayout.EndArea();
+        }
+
+        void DrawFooterSection()
+        {
+            GUILayout.BeginArea(footerSection);
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Abdy Asset Manager", skin.GetStyle("f_t_1"));
+            GUILayout.Label("V" + version, skin.GetStyle("f_t_2"));
+            GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }
     }

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: d81454ce2a725d940b40313b5d1405c3
+guid: c2d71b70dd77e9b44b711db14206a789
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -9,7 +9,7 @@ TrueTypeFontImporter:
   characterPadding: 1
   includeFontData: 1
   fontNames:
-  - Cute Teddy Bear
+  - Inter
   fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0

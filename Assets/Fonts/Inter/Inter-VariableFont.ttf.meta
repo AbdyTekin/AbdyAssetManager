@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 08fe3e5353388514287ac6d7973b0c1c
+guid: 29db04db77f28154a996b28516188fb7
 TrueTypeFontImporter:
   externalObjects: {}
   serializedVersion: 4
@@ -9,9 +9,8 @@ TrueTypeFontImporter:
   characterPadding: 1
   includeFontData: 1
   fontNames:
-  - RockoUltraFLF
-  fallbackFontReferences:
-  - {fileID: 12800000, guid: 5519c14ec0e3cad4ba4d153caae71512, type: 3}
+  - Inter
+  fallbackFontReferences: []
   customCharacters: 
   fontRenderingMode: 0
   ascentCalculationMode: 1
