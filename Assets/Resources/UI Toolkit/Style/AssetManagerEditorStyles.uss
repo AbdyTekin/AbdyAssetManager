@@ -1,0 +1,96 @@
+.section {
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left-color: var(--unity-colors-default-border);
+    border-right-color: var(--unity-colors-default-border);
+    border-top-color: var(--unity-colors-default-border);
+    border-bottom-color: var(--unity-colors-default-border);
+    padding-top: 6px;
+    padding-right: 6px;
+    padding-bottom: 6px;
+    padding-left: 6px;
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+.sectionHeader {
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    font-size: 12px;
+    color: var(--unity-colors-default-text);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--unity-colors-default-text-hover);
+    border-top-left-radius: 1px;
+    border-top-right-radius: 1px;
+    border-bottom-right-radius: 1px;
+    border-bottom-left-radius: 1px;
+    overflow: hidden;
+    padding-top: 2px;
+    padding-right: 2px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+}
+
+.layerList {
+    font-size: 15px;
+    color: rgb(223, 162, 191);
+    -unity-font-style: bold;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-left-color: rgba(231, 59, 146, 0.55);
+    border-right-color: rgba(231, 59, 146, 0.55);
+    border-top-color: rgba(231, 59, 146, 0.55);
+    border-bottom-color: rgba(231, 59, 146, 0.55);
+    flex-grow: 1;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.layerList .unity-list-view__item:selected {
+    background-color: rgba(174, 174, 174, 0.15);
+    color: rgb(242, 92, 168);
+}
+
+.layerListLabel {
+    padding-top: 3px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+    -unity-text-outline-width: 0.03px;
+    text-shadow: 10px 10px 0 rgb(45, 4, 44);
+    padding-left: 5px;
+    border-bottom-color: rgb(0, 0, 0);
+}
+
+.layerListTextField {
+    background-color: rgba(140, 33, 87, 0.13);
+    border-left-color: rgba(231, 59, 146, 0.78);
+    border-right-color: rgba(231, 59, 146, 0.78);
+    border-top-color: rgba(231, 59, 146, 0.78);
+    border-bottom-color: rgba(231, 59, 146, 0.78);
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border-bottom-right-radius: 2px;
+    border-bottom-left-radius: 2px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    text-shadow: 10px 10px 0 rgba(45, 4, 44, 0);
+    -unity-text-outline-width: 0.03px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+}
+
+TextField > TextInput {
+    background-color: transparent;
+    border-width: 0;
+}
