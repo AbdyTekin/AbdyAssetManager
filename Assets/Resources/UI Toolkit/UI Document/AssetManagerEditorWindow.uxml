@@ -12,7 +12,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="group-section" class="section" style="border-top-width: 5px; border-right-width: 2.5px; border-bottom-width: 5px; border-left-width: 2.5px; height: 100%; width: 30%;">
             <ui:Label text="Groups" parse-escape-sequences="true" display-tooltip-when-elided="true" name="group-header" tooltip="List of asset groups in Asset Layer. Groups consist of single type assets for each." class="sectionHeader" />
-            <ui:MultiColumnListView name="group-list" show-alternating-row-backgrounds="ContentOnly" style="flex-grow: 1;">
+            <ui:MultiColumnListView name="group-list" show-alternating-row-backgrounds="ContentOnly" sorting-enabled="false" style="flex-grow: 1;">
                 <ui:Columns>
                     <ui:Column name="name" title="Name" width="200" />
                     <ui:Column name="type" title="Type" width="50" />

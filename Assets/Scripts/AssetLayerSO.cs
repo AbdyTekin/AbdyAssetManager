@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace AbdyManagement
 {
     [CreateAssetMenu(menuName = "AssetData")]
     public class AssetLayerSO : ScriptableObject
     {
-        // Remove Serializables on final
-
         [System.Serializable]
         public class AssetData<T>
         {
@@ -17,24 +16,28 @@ namespace AbdyManagement
         }
 
         [System.Serializable]
-        public class AssetListData<T>
+        public class AssetGroupData<T>
         {
             public string groupName;
-            public List<AssetData<T>> data;
+            public List<AssetData<T>> assets;
         }
 
         public List<SceneAsset> sceneLayerMask;
 
-        public List<AssetListData<GameObject>> prefabs;
-        public List<AssetListData<AudioClip>> audioClips;
-        public List<AssetListData<ScriptableObject>> scriptableObjects;
-        public List<AssetListData<Material>> materials;
-        public List<AssetListData<Sprite>> sprites;
-        public List<AssetListData<Font>> fonts;
-        public List<AssetListData<AnimationClip>> animations;
-        public List<AssetListData<Texture>> textures;
-        public List<AssetListData<Shader>> shaders;
-        public List<AssetListData<Mesh>> meshes;
-        public List<AssetListData<SceneAsset>> scenes;
+        public List<AssetGroupData<Object>> groups;
+
+        /*
+        public List<AssetGroupData<GameObject>> prefabs;
+        public List<AssetGroupData<AudioClip>> audioClips;
+        public List<AssetGroupData<ScriptableObject>> scriptableObjects;
+        public List<AssetGroupData<Material>> materials;
+        public List<AssetGroupData<Sprite>> sprites;
+        public List<AssetGroupData<Font>> fonts;
+        public List<AssetGroupData<AnimationClip>> animations;
+        public List<AssetGroupData<Texture>> textures;
+        public List<AssetGroupData<Shader>> shaders;
+        public List<AssetGroupData<Mesh>> meshes;
+        public List<AssetGroupData<SceneAsset>> scenes;
+        */
     }
 }

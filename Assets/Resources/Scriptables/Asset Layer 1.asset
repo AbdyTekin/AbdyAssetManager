@@ -14,26 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneLayerMask:
   - {fileID: 102900000, guid: 99c9720ab356a0642a771bea13969a05, type: 3}
-  prefabs: []
-  audioClips: []
-  scriptableObjects: []
-  materials: []
-  sprites:
-  - groupName: NewGroup
-    data:
-    - name: asset1
-      asset: {fileID: 0}
-    - name: asset2
-      asset: {fileID: 0}
-    - name: asset3
-      asset: {fileID: 0}
-  - groupName: NewGroup
-    data: []
-  - groupName: NewGroup
-    data: []
-  fonts: []
-  animations: []
-  textures: []
-  shaders: []
-  meshes: []
-  scenes: []
+  groups:
+  - groupName: 1
+    assets: []
+  - groupName: 2
+    assets: []
