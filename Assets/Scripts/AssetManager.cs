@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace AbdyManagement
 {
-    public class AssetManager : MonoBehaviour
+    public class AssetManager : Singleton<AssetManager>
     {
         public void GetAsset(string name)
         {

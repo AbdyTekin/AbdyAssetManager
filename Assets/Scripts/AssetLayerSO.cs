@@ -26,18 +26,5 @@ namespace AbdyManagement
 
         public List<AssetGroupData<Object>> groups;
 
-        /*
-        public List<AssetGroupData<GameObject>> prefabs;
-        public List<AssetGroupData<AudioClip>> audioClips;
-        public List<AssetGroupData<ScriptableObject>> scriptableObjects;
-        public List<AssetGroupData<Material>> materials;
-        public List<AssetGroupData<Sprite>> sprites;
-        public List<AssetGroupData<Font>> fonts;
-        public List<AssetGroupData<AnimationClip>> animations;
-        public List<AssetGroupData<Texture>> textures;
-        public List<AssetGroupData<Shader>> shaders;
-        public List<AssetGroupData<Mesh>> meshes;
-        public List<AssetGroupData<SceneAsset>> scenes;
-        */
     }
 }
