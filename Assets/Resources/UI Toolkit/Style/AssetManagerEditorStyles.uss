@@ -80,14 +80,14 @@
     text-shadow: 10px 10px 0 rgb(0, 0, 0);
     -unity-text-outline-width: 0.03px;
     -unity-text-outline-color: rgb(0, 0, 0);
-    scale: 1.2 1.2;
     font-size: 12px;
     -unity-text-align: middle-left;
-    padding-left: 10px;
     margin-top: -3px;
     height: 27.5px;
     top: 4px;
     flex-basis: 85%;
+    scale: 1.2 1.2;
+    transform-origin: 5%;
 }
 
 .groupList {
@@ -131,13 +131,14 @@
     -unity-text-outline-color: rgb(0, 0, 0);
     scale: 1.2 1.2;
     -unity-text-align: middle-left;
-    padding-left: 8px;
     margin-top: -7px;
     height: 27.5px;
     top: 4px;
     flex-basis: 85%;
     font-size: 10px;
     -unity-font-style: bold;
+    transform-origin: 5%;
+    margin-left: -2px;
 }
 
 .groupListLabel2 {
@@ -179,6 +180,23 @@
     -unity-text-outline-width: 0;
     padding-left: 5px;
     border-bottom-color: rgb(0, 0, 0);
+}
+
+.assetListTextField {
+    background-color: rgb(91, 63, 99);
+    text-shadow: 10px 10px 0 rgb(0, 0, 0);
+    -unity-text-outline-width: 0.03px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+    scale: 1.2 1.2;
+    -unity-text-align: middle-left;
+    margin-top: -7px;
+    height: 27.5px;
+    top: 4px;
+    flex-basis: 85%;
+    font-size: 10px;
+    -unity-font-style: bold;
+    transform-origin: 5%;
+    margin-left: -2px;
 }
 
 TextField > TextInput {

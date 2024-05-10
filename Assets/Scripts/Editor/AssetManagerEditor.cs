@@ -1,4 +1,3 @@
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +15,14 @@ namespace AbdyManagement
         private bool isRenaming;
         private int lastSelectedLayerIndex;
 
-        private Dictionary<int, EventCallback<MouseDownEvent>> mouseDownCallbacks = new();
-        private Dictionary<int, EventCallback<KeyDownEvent>> keyDownCallbacks = new();
-        private Dictionary<int, EventCallback<ContextClickEvent>> contextClickCallbacks = new();
+        private Dictionary<int, EventCallback<MouseDownEvent>> groupMouseDownCallbacks = new();
+        private Dictionary<int, EventCallback<KeyDownEvent>> groupKeyDownCallbacks = new();
+        private Dictionary<int, EventCallback<ContextClickEvent>> groupContextClickCallbacks = new();
+
+        private Dictionary<int, EventCallback<MouseDownEvent>> assetMouseDownCallbacks = new();
+        private Dictionary<int, EventCallback<KeyDownEvent>> assetKeyDownCallbacks = new();
+        private Dictionary<int, EventCallback<ContextClickEvent>> assetContextClickCallbacks = new();
+        private Dictionary<int, EventCallback<ChangeEvent<Object>>> assetChangedCallbacks = new();
 
         [MenuItem("Tools/Abdy/Asset Manager")]
         public static void OpenEditorWindow()
@@ -237,9 +241,9 @@ namespace AbdyManagement
                 label.RegisterCallback(keyDownCallback);
                 label.RegisterCallback(contextClickCallback);
 
-                mouseDownCallbacks[i] = mouseDownCallback;
-                keyDownCallbacks[i] = keyDownCallback;
-                contextClickCallbacks[i] = contextClickCallback;
+                groupMouseDownCallbacks[i] = mouseDownCallback;
+                groupKeyDownCallbacks[i] = keyDownCallback;
+                groupContextClickCallbacks[i] = contextClickCallback;
 
                 void StartRename()
                 {
@@ -290,15 +294,15 @@ namespace AbdyManagement
             {
                 var label = e as Label;
 
-                if (mouseDownCallbacks.TryGetValue(i, out var oldMouseDownCallback))
+                if (groupMouseDownCallbacks.TryGetValue(i, out var oldMouseDownCallback))
                 {
                     label.UnregisterCallback(oldMouseDownCallback);
                 }
-                if (keyDownCallbacks.TryGetValue(i, out var oldKeyDownCallback))
+                if (groupKeyDownCallbacks.TryGetValue(i, out var oldKeyDownCallback))
                 {
                     label.UnregisterCallback(oldKeyDownCallback);
                 }
-                if (contextClickCallbacks.TryGetValue(i, out var oldContextClickCallback))
+                if (groupContextClickCallbacks.TryGetValue(i, out var oldContextClickCallback))
                 {
                     label.UnregisterCallback(oldContextClickCallback);
                 }
@@ -334,20 +338,138 @@ namespace AbdyManagement
             assetList.columns["name"].makeCell = () => new Label();
             assetList.columns["reference"].makeCell = () => new ObjectField();
 
-            assetList.columns["name"].bindCell = (VisualElement e, int index) =>
+            assetList.columns["name"].bindCell = (VisualElement e, int i) =>
             {
                 if (assetList.itemsSource is not List<AssetData<Object>> assets) return;
-                (e as Label).text = assets[index].name;
-                (e as Label).AddToClassList("assetListLabel");
+                var label = e as Label;
+                label.text = assets[i].name;
+                label.focusable = true;
+                label.AddToClassList("assetListLabel");
+
+
+                EventCallback<MouseDownEvent> mouseDownCallback = evt =>
+                {
+                    if (evt.clickCount == 2 && evt.button == 0)
+                    {
+                        StartRename();
+                    }
+                };
+                EventCallback<KeyDownEvent> keyDownCallback = evt =>
+                {
+                    if (evt.keyCode == KeyCode.F2)
+                    {
+                        StartRename();
+                    }
+                    else if (evt.keyCode == KeyCode.Delete)
+                    {
+                        Delete();
+                    }
+                };
+                EventCallback<ContextClickEvent> contextClickCallback = evt =>
+                {
+                    GenericMenu menu = new();
+                    menu.AddItem(new GUIContent("Rename"), false, () => StartRename());
+                    menu.AddItem(new GUIContent("Delete"), false, () => Delete());
+                    menu.ShowAsContext();
+                };
+
+                label.RegisterCallback(mouseDownCallback);
+                label.RegisterCallback(keyDownCallback);
+                label.RegisterCallback(contextClickCallback);
+
+                assetMouseDownCallbacks[i] = mouseDownCallback;
+                assetKeyDownCallbacks[i] = keyDownCallback;
+                assetContextClickCallbacks[i] = contextClickCallback;
+
+                void StartRename()
+                {
+                    isRenaming = true;
+                    var textField = new TextField { value = label.text };
+                    textField.AddToClassList("assetListTextField");
+                    e.Add(textField);
+                    textField.Q<VisualElement>().Focus();
+                    textField.RegisterCallback<FocusOutEvent>(evt =>
+                    {
+                        ChangeNameOnFocusOut(textField);
+                    });
+                    textField.RegisterCallback<KeyDownEvent>(evt =>
+                    {
+                        if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter)
+                        {
+                            ChangeNameOnFocusOut(textField);
+                        }
+                    });
+                    assetList.ClearSelection();
+                }
+
+                void ChangeNameOnFocusOut(TextField textField)
+                {
+                    string newName = textField.value.Trim();
+
+                    if (!string.IsNullOrEmpty(newName) && newName != assets[i].name)
+                    {
+                        assets[i].name = newName;
+                    }
+
+                    e.Remove(textField);
+
+                    label.text = newName;
+
+                    isRenaming = false;
+                    assetList.SetSelection(-1);
+                }
+
+                void Delete()
+                {
+                    assets.RemoveAt(i);
+                    assetList.Rebuild();
+                }
             };
 
-            assetList.columns["reference"].bindCell = (VisualElement e, int index) =>
+            assetList.columns["name"].unbindCell = (e, i) =>
+            {
+                var label = e as Label;
+
+                if (assetMouseDownCallbacks.TryGetValue(i, out var oldMouseDownCallback))
+                {
+                    label.UnregisterCallback(oldMouseDownCallback);
+                }
+                if (assetKeyDownCallbacks.TryGetValue(i, out var oldKeyDownCallback))
+                {
+                    label.UnregisterCallback(oldKeyDownCallback);
+                }
+                if (assetContextClickCallbacks.TryGetValue(i, out var oldContextClickCallback))
+                {
+                    label.UnregisterCallback(oldContextClickCallback);
+                }
+            };
+
+            assetList.columns["reference"].bindCell = (e, i) =>
             {
                 if (assetList.itemsSource is not List<AssetData<Object>> assets) return;
-                (e as ObjectField).objectType = assets[index].asset.GetType();
+                var objectField = e as ObjectField;
+                objectField.objectType = assets[i].asset.GetType();
 
-                (e as ObjectField).value = assets[index].asset;
+                objectField.value = assets[i].asset;
 
+                EventCallback<ChangeEvent<Object>> assetChangedCallback = evt =>
+                {
+                    assets[i].asset = evt.newValue;
+                };
+
+                assetChangedCallbacks[i] = assetChangedCallback;
+
+                objectField.RegisterCallback(assetChangedCallback);
+            };
+
+            assetList.columns["reference"].unbindCell = (e, i) =>
+            {
+                var objectField = e as ObjectField;
+
+                if (assetChangedCallbacks.TryGetValue(i, out var assetChangedCallback))
+                {
+                    objectField.UnregisterCallback(assetChangedCallback);
+                }
             };
 
             assetList.selectionChanged += (evt) =>
