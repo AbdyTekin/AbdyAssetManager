@@ -4,7 +4,7 @@
         <ui:VisualElement name="sub-panel" style="width: 20%; flex-direction: column; height: 100%; flex-grow: 1; flex-shrink: 0;">
             <ui:VisualElement name="layer-section" class="section" style="border-top-width: 5px; border-right-width: 2.5px; border-bottom-width: 2.5px; border-left-width: 5px; max-height: 60%;">
                 <ui:Label text="Layers" parse-escape-sequences="true" display-tooltip-when-elided="true" name="layer-header" tooltip="Layer section to display all layers." class="sectionHeader" />
-                <ui:Button text="+&#10;" parse-escape-sequences="true" display-tooltip-when-elided="true" name="layer-add-button" style="position: absolute; right: -1%; align-items: center; justify-content: center; align-self: center; -unity-text-align: upper-center; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-right: 4px; padding-left: 4px; top: -1px;" />
+                <ui:Button text="+" parse-escape-sequences="true" display-tooltip-when-elided="true" name="layer-add-button" style="position: absolute; right: -1%; align-items: center; justify-content: center; align-self: center; -unity-text-align: upper-center; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-right: 4px; padding-left: 4px; top: -1px;" />
                 <ui:ListView name="layer-list" fixed-item-height="1" virtualization-method="DynamicHeight" class="layerList" />
             </ui:VisualElement>
             <ui:VisualElement name="scene-mask-section" class="section" style="border-top-width: 2.5px; border-right-width: 2.5px; border-bottom-width: 5px; border-left-width: 5px; max-height: 40%;">

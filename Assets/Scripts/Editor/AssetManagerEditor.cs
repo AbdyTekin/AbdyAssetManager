@@ -66,10 +66,6 @@ namespace AbdyManagement
                 {
                     CheckAndRefresh(asset);
                 }
-                foreach (string asset in deletedAssets)
-                {
-                    CheckAndRefresh(asset);
-                }
             }
 
             static void CheckAndRefresh(string asset)
