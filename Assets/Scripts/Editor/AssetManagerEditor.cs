@@ -18,97 +18,61 @@ namespace AbdyManagement
         private Dictionary<int, EventCallback<MouseDownEvent>> groupMouseDownCallbacks = new();
         private Dictionary<int, EventCallback<KeyDownEvent>> groupKeyDownCallbacks = new();
         private Dictionary<int, EventCallback<ContextClickEvent>> groupContextClickCallbacks = new();
-
         private Dictionary<int, EventCallback<MouseDownEvent>> assetMouseDownCallbacks = new();
         private Dictionary<int, EventCallback<KeyDownEvent>> assetKeyDownCallbacks = new();
         private Dictionary<int, EventCallback<ContextClickEvent>> assetContextClickCallbacks = new();
         private Dictionary<int, EventCallback<ChangeEvent<Object>>> assetChangedCallbacks = new();
 
-        [MenuItem("Tools/Abdy/Asset Manager")]
+        #region Constant Strings
+        private const string s_editorName = "Asset Manager Editor";
+        private const string s_menuPath = "Tools/Abdy/Asset Manager";
+        private const string s_layerList = "layer-list";
+        private const string s_groupList = "group-list";
+        private const string s_assetList = "asset-list";
+        private const string s_scriptablesPath = "Assets/Resources/Scriptables";
+        private const string s_scriptablesPathInResources = "Scriptables";
+        private const string s_uxmlFileLocation = "Assets/Resources/UI Toolkit/UI Document/AssetManagerEditorWindow.uxml";
+        #endregion
+
+        [MenuItem(s_menuPath)]
         public static void OpenEditorWindow()
         {
-            AssetManagerEditor wnd = GetWindow<AssetManagerEditor>();
-            wnd.titleContent = new GUIContent("Asset Manager Editor");
+            var wnd = GetWindow<AssetManagerEditor>();
+            wnd.titleContent = new GUIContent(s_editorName);
             wnd.minSize = new Vector2(512, 256);
         }
 
         private void CreateGUI()
         {
-            VisualElement root = rootVisualElement;
-
-            var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                "Assets/Resources/UI Toolkit/UI Document/AssetManagerEditorWindow.uxml"
-                );
+            var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(s_uxmlFileLocation);
             VisualElement tree = visualTree.Instantiate();
             tree.style.flexGrow = 1;
-
-            root.Add(tree);
-
-            CreateSectionLists();
-
-
+            rootVisualElement.Add(tree);
+            CreateLists();
         }
 
-        class MyAssetPostprocessor : AssetPostprocessor
+        private void CreateLists()
         {
-            public static event Action OnFileUpdate;
-            static void OnPostprocessAllAssets(
-                string[] importedAssets,
-                string[] deletedAssets,
-                string[] movedAssets,
-                string[] movedFromAssetPaths)
-            {
-                foreach (string asset in importedAssets)
-                {
-                    CheckAndRefresh(asset);
-                }
-                foreach (string asset in deletedAssets)
-                {
-                    CheckAndRefresh(asset);
-                }
-            }
+            var layerList = rootVisualElement.Q<ListView>(s_layerList);
+            var groupList = rootVisualElement.Q<MultiColumnListView>(s_groupList);
+            var assetList = rootVisualElement.Q<MultiColumnListView>(s_assetList);
 
-            static void CheckAndRefresh(string asset)
-            {
-                if (asset.StartsWith("Assets/Resources/Scriptables"))
-                {
-                    OnFileUpdate?.Invoke();
-                }
-            }
-        }
-
-        private void CreateSectionLists()
-        {
-            var layerList = rootVisualElement.Q<ListView>("layer-list");
-            var groupList = rootVisualElement.Q<MultiColumnListView>("group-list");
-            var assetList = rootVisualElement.Q<MultiColumnListView>("asset-list");
-
-            DefineLists(layerList, groupList, assetList);
-
-            var items = Resources.LoadAll<AssetLayerSO>("Scriptables").ToList();
-            layerList.itemsSource = items;
-
-            
-
+            #region Layer List View
+            layerList.itemsSource = Resources.LoadAll<AssetLayerSO>(s_scriptablesPathInResources).ToList();
             MyAssetPostprocessor.OnFileUpdate += () =>
             {
-                var items = Resources.LoadAll<AssetLayerSO>("Scriptables").ToList();
-                layerList.itemsSource = items;
+                layerList.itemsSource = Resources.LoadAll<AssetLayerSO>(s_scriptablesPathInResources).ToList();
                 layerList.Rebuild();
             };
-        }
 
-        private void DefineLists(ListView layerList, MultiColumnListView groupList, MultiColumnListView assetList)
-        {
-            #region Layer List View
             layerList.makeItem = () => new VisualElement();
 
-            layerList.bindItem = (e, i) =>
+            layerList.bindItem = (visual, index) =>
             {
                 if (layerList.itemsSource is not List<AssetLayerSO> layers) return;
-                var label = new Label { text = layers[i].name, focusable = true, style = { height = 30.0f, unityTextAlign = TextAnchor.MiddleLeft } };
+                var label = new Label { text = layers[index].name, focusable = true, style = { height = 30.0f, unityTextAlign = TextAnchor.MiddleLeft } };
                 label.AddToClassList("layerListLabel");
-                e.Add(label);
+                visual.Add(label);
                 label.RegisterCallback<MouseDownEvent>(evt =>
                 {
                     if (evt.clickCount == 2 && evt.button == 0)
@@ -140,9 +104,9 @@ namespace AbdyManagement
                 {
                     isRenaming = true;
                     var textField = new TextField { value = label.text };
-                    e.Remove(label);
+                    visual.Remove(label);
                     textField.AddToClassList("layerListTextField");
-                    e.Add(textField);
+                    visual.Add(textField);
                     textField.Q<VisualElement>().Focus();
                     textField.RegisterCallback<FocusOutEvent>(evt => ChangeNameOnFocusOut(textField));
                     textField.RegisterCallback<KeyDownEvent>(evt =>
@@ -160,14 +124,14 @@ namespace AbdyManagement
                 {
                     string newName = textField.value.Trim();
 
-                    if (!string.IsNullOrEmpty(newName) && newName != layers[i].name)
+                    if (!string.IsNullOrEmpty(newName) && newName != layers[index].name)
                     {
-                        UpdateAssetLayerName(newName, layers[i]);
+                        UpdateAssetLayerName(newName, layers[index]);
                     }
 
-                    e.Remove(textField);
+                    visual.Remove(textField);
                     label.text = newName;
-                    e.Add(label);
+                    visual.Add(label);
 
                     isRenaming = false;
                     layerList.SetSelection(lastSelectedLayerIndex);
@@ -175,8 +139,8 @@ namespace AbdyManagement
 
                 void Delete()
                 {
-                    DeleteAssetLayer(layerList.itemsSource[i] as AssetLayerSO);
-                    var items = Resources.LoadAll<AssetLayerSO>("Scriptables").ToList();
+                    DeleteAssetLayer(layerList.itemsSource[index] as AssetLayerSO);
+                    var items = Resources.LoadAll<AssetLayerSO>(s_scriptablesPathInResources).ToList();
                     layerList.itemsSource = items;
                     layerList.Rebuild();
                 }
@@ -199,10 +163,10 @@ namespace AbdyManagement
             groupList.columns["name"].makeCell = () => new Label();
             groupList.columns["type"].makeCell = () => new Label();
 
-            groupList.columns["name"].bindCell = (VisualElement e, int i) =>
+            groupList.columns["name"].bindCell = (VisualElement visual, int i) =>
             {
                 if (groupList.itemsSource is not List<AssetGroupData<Object>> groups) return;
-                var label = e as Label;
+                var label = visual as Label;
                 label.text = groups[i].groupName;
                 label.focusable = true;
                 label.AddToClassList("groupListLabel1");
@@ -246,7 +210,7 @@ namespace AbdyManagement
                     isRenaming = true;
                     var textField = new TextField { value = label.text };
                     textField.AddToClassList("groupListTextField");
-                    e.Add(textField);
+                    visual.Add(textField);
                     textField.Q<VisualElement>().Focus();
                     textField.RegisterCallback<FocusOutEvent>(evt =>
                     {
@@ -271,7 +235,7 @@ namespace AbdyManagement
                         groups[i].groupName = newName;
                     }
 
-                    e.Remove(textField);
+                    visual.Remove(textField);
 
                     label.text = newName;
 
@@ -286,7 +250,7 @@ namespace AbdyManagement
                 }
             };
 
-            groupList.columns["name"].unbindCell = (e,i) =>
+            groupList.columns["name"].unbindCell = (e, i) =>
             {
                 var label = e as Label;
 
@@ -327,17 +291,17 @@ namespace AbdyManagement
                 }
             };
 
-            SetDynamicColumnWidths("group-list", 0.65f, 0.35f);
+            SetDynamicColumnWidths(s_groupList, 0.65f, 0.35f);
             #endregion
 
             #region Asset Multi Column List View
             assetList.columns["name"].makeCell = () => new Label();
             assetList.columns["reference"].makeCell = () => new ObjectField();
 
-            assetList.columns["name"].bindCell = (VisualElement e, int i) =>
+            assetList.columns["name"].bindCell = (VisualElement visual, int i) =>
             {
                 if (assetList.itemsSource is not List<AssetData<Object>> assets) return;
-                var label = e as Label;
+                var label = visual as Label;
                 label.text = assets[i].name;
                 label.focusable = true;
                 label.AddToClassList("assetListLabel");
@@ -382,7 +346,7 @@ namespace AbdyManagement
                     isRenaming = true;
                     var textField = new TextField { value = label.text };
                     textField.AddToClassList("assetListTextField");
-                    e.Add(textField);
+                    visual.Add(textField);
                     textField.Q<VisualElement>().Focus();
                     textField.RegisterCallback<FocusOutEvent>(evt =>
                     {
@@ -407,7 +371,7 @@ namespace AbdyManagement
                         assets[i].name = newName;
                     }
 
-                    e.Remove(textField);
+                    visual.Remove(textField);
 
                     label.text = newName;
 
@@ -480,13 +444,23 @@ namespace AbdyManagement
                 }
             };
 
-            SetDynamicColumnWidths("asset-list", 0.5f, 0.5f);
+            SetDynamicColumnWidths(s_assetList, 0.5f, 0.5f);
             #endregion
+        }
+
+        private void CreateLayerList(AssetLayerSO layer)
+        {
+            var groupList = rootVisualElement.Q<MultiColumnListView>(s_layerList);
+
+            groupList.itemsSource = layer.groups;
+            groupList.ClearSelection();
+
+            CreateAssetList(null);
         }
 
         private void CreateGroupList(AssetLayerSO layer)
         {
-            var groupList = rootVisualElement.Q<MultiColumnListView>("group-list");
+            var groupList = rootVisualElement.Q<MultiColumnListView>(s_groupList);
 
             groupList.itemsSource = layer.groups;
             groupList.ClearSelection();
@@ -496,7 +470,7 @@ namespace AbdyManagement
 
         private void CreateAssetList(List<AssetData<Object>> list)
         {
-            var assetList = rootVisualElement.Q<MultiColumnListView>("asset-list");
+            var assetList = rootVisualElement.Q<MultiColumnListView>(s_assetList);
 
             assetList.itemsSource = list;
             assetList.ClearSelection();
@@ -546,6 +520,30 @@ namespace AbdyManagement
         }
         #endregion
 
+        #region AssetPostprocessor
+        class MyAssetPostprocessor : AssetPostprocessor
+        {
+            public static event Action OnFileUpdate;
+            static void OnPostprocessAllAssets(
+                string[] imported,
+                string[] deleted,
+                string[] moved,
+                string[] movedFromAssetPaths)
+            {
+                string[] _assets = new[] { imported, deleted, moved, movedFromAssetPaths }
+                        .SelectMany(arr => arr)
+                        .ToArray();
+                foreach (string asset in _assets)
+                {
+                    if (asset.StartsWith(s_scriptablesPath))
+                    {
+                        OnFileUpdate?.Invoke();
+                        break;
+                    }
+                }
+            }
+        }
+        #endregion
     }
 }
 
