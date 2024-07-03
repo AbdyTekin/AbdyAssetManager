@@ -1,3 +1,4 @@
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,9 @@ namespace AbdyManagement
         private const string s_scriptablesPath = "Assets/Resources/Scriptables";
         private const string s_scriptablesPathInResources = "Scriptables";
         private const string s_uxmlFileLocation = "Assets/Resources/UI Toolkit/UI Document/AssetManagerEditorWindow.uxml";
+        private const string s_layerTextFieldClass = "layerListTextField";
+        private const string s_groupTextFieldClass = "groupListTextField";
+        private const string s_assetTextFieldClass = "assetListTextField";
         #endregion
 
         [MenuItem(s_menuPath)]
@@ -65,85 +69,19 @@ namespace AbdyManagement
                 layerList.Rebuild();
             };
 
-            layerList.makeItem = () => new VisualElement();
+            layerList.makeItem = () => new Label();
 
             layerList.bindItem = (visual, index) =>
             {
                 if (layerList.itemsSource is not List<AssetLayerSO> layers) return;
-                var label = new Label { text = layers[index].name, focusable = true, style = { height = 30.0f, unityTextAlign = TextAnchor.MiddleLeft } };
+                var label = visual as Label;
+                label.text = layers[index].name;
+                label.focusable = true ;
                 label.AddToClassList("layerListLabel");
-                visual.Add(label);
-                label.RegisterCallback<MouseDownEvent>(evt =>
-                {
-                    if (evt.clickCount == 2 && evt.button == 0)
-                    {
-                        StartRename();
-                    }
-                });
 
-                label.RegisterCallback<KeyDownEvent>(evt =>
-                {
-                    if (evt.keyCode == KeyCode.F2)
-                    {
-                        StartRename();
-                    }
-                    else if (evt.keyCode == KeyCode.Delete)
-                    {
-                        Delete();
-                    }
-                });
-                label.RegisterCallback<ContextClickEvent>(evt =>
-                {
-                    GenericMenu menu = new GenericMenu();
-                    menu.AddItem(new GUIContent("Rename"), false, () => StartRename());
-                    menu.AddItem(new GUIContent("Delete"), false, () => Delete());
-                    menu.ShowAsContext();
-                });
-
-                void StartRename()
-                {
-                    isRenaming = true;
-                    var textField = new TextField { value = label.text };
-                    visual.Remove(label);
-                    textField.AddToClassList("layerListTextField");
-                    visual.Add(textField);
-                    textField.Q<VisualElement>().Focus();
-                    textField.RegisterCallback<FocusOutEvent>(evt => ChangeNameOnFocusOut(textField));
-                    textField.RegisterCallback<KeyDownEvent>(evt =>
-                    {
-                        if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter)
-                        {
-                            ChangeNameOnFocusOut(textField);
-                        }
-                    });
-                    lastSelectedLayerIndex = layerList.selectedIndex;
-                    layerList.ClearSelection();
-                }
-
-                void ChangeNameOnFocusOut(TextField textField)
-                {
-                    string newName = textField.value.Trim();
-
-                    if (!string.IsNullOrEmpty(newName) && newName != layers[index].name)
-                    {
-                        UpdateAssetLayerName(newName, layers[index]);
-                    }
-
-                    visual.Remove(textField);
-                    label.text = newName;
-                    visual.Add(label);
-
-                    isRenaming = false;
-                    layerList.SetSelection(lastSelectedLayerIndex);
-                }
-
-                void Delete()
-                {
-                    DeleteAssetLayer(layerList.itemsSource[index] as AssetLayerSO);
-                    var items = Resources.LoadAll<AssetLayerSO>(s_scriptablesPathInResources).ToList();
-                    layerList.itemsSource = items;
-                    layerList.Rebuild();
-                }
+                label.RegisterCallback<MouseDownEvent>(evt => MouseDownEventCallback(evt, layerList, index, visual, label, s_layerTextFieldClass));
+                label.RegisterCallback<KeyDownEvent>(evt => KeyDownEventCallback(evt, layerList, index, visual, label, s_layerTextFieldClass));
+                label.RegisterCallback<ContextClickEvent>(evt => ContextClickEventCallback(layerList, index, visual, label, s_layerTextFieldClass));
             };
 
             layerList.selectionChanged += (evt) =>
@@ -163,11 +101,11 @@ namespace AbdyManagement
             groupList.columns["name"].makeCell = () => new Label();
             groupList.columns["type"].makeCell = () => new Label();
 
-            groupList.columns["name"].bindCell = (VisualElement visual, int i) =>
+            groupList.columns["name"].bindCell = (VisualElement visual, int index) =>
             {
                 if (groupList.itemsSource is not List<AssetGroupData<Object>> groups) return;
                 var label = visual as Label;
-                label.text = groups[i].groupName;
+                label.text = groups[index].groupName;
                 label.focusable = true;
                 label.AddToClassList("groupListLabel1");
 
@@ -197,13 +135,17 @@ namespace AbdyManagement
                     menu.ShowAsContext();
                 };
 
-                label.RegisterCallback(mouseDownCallback);
-                label.RegisterCallback(keyDownCallback);
-                label.RegisterCallback(contextClickCallback);
+                //label.RegisterCallback(mouseDownCallback);
+                //label.RegisterCallback(keyDownCallback);
+                //label.RegisterCallback(contextClickCallback);
 
-                groupMouseDownCallbacks[i] = mouseDownCallback;
-                groupKeyDownCallbacks[i] = keyDownCallback;
-                groupContextClickCallbacks[i] = contextClickCallback;
+                label.RegisterCallback<MouseDownEvent>(evt => MouseDownEventCallback(evt, groupList, index, visual, label, s_groupTextFieldClass));
+                label.RegisterCallback<KeyDownEvent>(evt => KeyDownEventCallback(evt, groupList, index, visual, label, s_groupTextFieldClass));
+                label.RegisterCallback<ContextClickEvent>(evt => ContextClickEventCallback(groupList, index, visual, label, s_groupTextFieldClass));
+
+                groupMouseDownCallbacks[index] = mouseDownCallback;
+                groupKeyDownCallbacks[index] = keyDownCallback;
+                groupContextClickCallbacks[index] = contextClickCallback;
 
                 void StartRename()
                 {
@@ -230,9 +172,9 @@ namespace AbdyManagement
                 {
                     string newName = textField.value.Trim();
 
-                    if (!string.IsNullOrEmpty(newName) && newName != groups[i].groupName)
+                    if (!string.IsNullOrEmpty(newName) && newName != groups[index].groupName)
                     {
-                        groups[i].groupName = newName;
+                        groups[index].groupName = newName;
                     }
 
                     visual.Remove(textField);
@@ -245,7 +187,7 @@ namespace AbdyManagement
 
                 void Delete()
                 {
-                    groups.RemoveAt(i);
+                    groups.RemoveAt(index);
                     groupList.Rebuild();
                 }
             };
@@ -476,6 +418,117 @@ namespace AbdyManagement
             assetList.ClearSelection();
         }
 
+        #region DynamicColumn
+        private void SetDynamicColumnWidths(string tag, params float[] widths)
+        {
+            var listView = rootVisualElement.Q<MultiColumnListView>(tag);
+            float totalFlexRatio = widths.Sum();
+            Action updateColumnWidths = () =>
+            {
+                float totalWidth = listView.resolvedStyle.width;
+
+                for (int i = 0; i < widths.Length; i++)
+                {
+                    listView.columns[i].width = ((totalWidth * widths[i]) / totalFlexRatio);
+                }
+            };
+
+            listView.RegisterCallback<GeometryChangedEvent>(evt => updateColumnWidths());
+            updateColumnWidths();
+        }
+        #endregion
+
+        #region Callbacks
+
+        private void MouseDownEventCallback(MouseDownEvent evt, BaseVerticalCollectionView list, int index, VisualElement visual, Label label, string styleClass)
+        {
+            if (evt.clickCount == 2 && evt.button == 0)
+            {
+                StartRename(list, index, list.itemsSource[index] as AssetLayerSO, visual, label, styleClass);
+            }
+        }
+
+        private void KeyDownEventCallback(KeyDownEvent evt, BaseVerticalCollectionView list, int index, VisualElement visual, Label label, string styleClass)
+        {
+            if (evt.keyCode == KeyCode.F2)
+            {
+                StartRename(list, index, list.itemsSource[index] as AssetLayerSO, visual, label, styleClass);
+            }
+            else if (evt.keyCode == KeyCode.Delete)
+            {
+                Delete(list, index);
+            }
+        }
+
+        private void ContextClickEventCallback(BaseVerticalCollectionView list, int index, VisualElement visual, Label label, string styleClass)
+        {
+            GenericMenu menu = new GenericMenu();
+            menu.AddItem(new GUIContent("Rename"), false, () => StartRename(list, index, list.itemsSource[index] as AssetLayerSO, visual, label, styleClass));
+            menu.AddItem(new GUIContent("Delete"), false, () => Delete(list, index));
+            menu.ShowAsContext();
+        }
+
+        #endregion
+
+        #region Callback Utilities
+        private void StartRename(BaseVerticalCollectionView list, int index, AssetLayerSO layer, VisualElement visual, Label label, string styleClass)
+        {
+            isRenaming = true;
+            var textField = new TextField { value = label.text };
+            textField.AddToClassList(styleClass);
+            visual.Add(textField);
+            textField.Q<VisualElement>().Focus();
+            textField.RegisterCallback<FocusOutEvent>(evt => ChangeNameOnFocusOut(list, index, layer, visual, label, textField));
+            textField.RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter)
+                {
+                    ChangeNameOnFocusOut(list, index, layer, visual, label, textField);
+                }
+            });
+            lastSelectedLayerIndex = list.selectedIndex;
+            list.ClearSelection();
+        }
+
+        private void ChangeNameOnFocusOut(BaseVerticalCollectionView list, int index, AssetLayerSO layer, VisualElement visual, Label label, TextField textField)
+        {
+            string newName = textField.value.Trim();
+
+            if (list is ListView)
+            {
+                if (!string.IsNullOrEmpty(newName) && newName != layer.name)
+                {
+                    UpdateAssetLayerName(newName, layer);
+                }
+            }
+            else if (list is MultiColumnListView)
+            {
+                (list.itemsSource[index] as AssetGroupData<Object>).groupName = newName;
+            }
+
+            visual.Remove(textField);
+            label.text = newName;
+
+            isRenaming = false;
+            list.SetSelection(lastSelectedLayerIndex);
+        }
+
+        private void Delete(BaseVerticalCollectionView list, int index)
+        {
+            if (list is ListView)
+            {
+                DeleteAssetLayer(list.itemsSource[index] as AssetLayerSO);
+                var items = Resources.LoadAll<AssetLayerSO>(s_scriptablesPathInResources).ToList();
+                list.itemsSource = items;
+            }
+            else if (list is MultiColumnListView)
+            {
+                list.RemoveAt(index);
+            }
+
+            list.Rebuild();
+        }
+
         private void UpdateAssetLayerName(string newName, AssetLayerSO assetLayer)
         {
             string assetPath = AssetDatabase.GetAssetPath(assetLayer);
@@ -498,25 +551,6 @@ namespace AbdyManagement
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
             }
-        }
-
-        #region DynamicColumn
-        private void SetDynamicColumnWidths(string tag, params float[] widths)
-        {
-            var listView = rootVisualElement.Q<MultiColumnListView>(tag);
-            float totalFlexRatio = widths.Sum();
-            Action updateColumnWidths = () =>
-            {
-                float totalWidth = listView.resolvedStyle.width;
-
-                for (int i = 0; i < widths.Length; i++)
-                {
-                    listView.columns[i].width = ((totalWidth * widths[i]) / totalFlexRatio);
-                }
-            };
-
-            listView.RegisterCallback<GeometryChangedEvent>(evt => updateColumnWidths());
-            updateColumnWidths();
         }
         #endregion
 
